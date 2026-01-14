@@ -159,57 +159,40 @@ export function extractTasks(): Task[] {
   const tasks: Task[] = [];
   const seen = new Set<string>();
 
-  const rows = Array.from(
-    document.querySelectorAll<HTMLElement>(
-      'div[class*="InboxItemWrapper_container"], div[class*="CollapsedItemLayout_compact_wrapper"]'
-    )
-  );
+  const grid = document.querySelector('div[class*="InboxGrid_inboxGrid"]');
+  if (!grid) return [];
 
-  rows.forEach((row, index) => {
-    let title =
-      normalizeText(
-        row.querySelector('span.typography_uiText_0ad')?.textContent ?? ""
-      ) ||
-      normalizeText(
-        row.querySelector('div.CollapsedItemLayout_compact_ellipsis_a1b')?.textContent ?? ""
-      );
+  const rows = Array.from(grid.querySelectorAll<HTMLElement>('div[class*="InboxItemWrapper_container"]'));
+
+  rows.forEach((row) => {
+    const title = 
+      normalizeText(row.querySelector('div[class*="compact_ellipsis"]')?.textContent ?? "") || 
+      normalizeText(row.querySelector('h2, [class*="ExpandedItemLayout_title"]')?.textContent ?? "");
 
     if (!title) return;
+    const proxyId = row.querySelector('[data-inbox-item-proxy-id]')?.getAttribute('data-inbox-item-proxy-id') || 
+                    row.getAttribute('data-inbox-item-proxy-id');
+    
+    const id = ensureId(proxyId || `task-${title}`);
 
-    const assignee =
-      normalizeText(
-        row.querySelector('div.ExpandedItemLayout_leadInfoBox_e6b span.typography_uiText_0ad')?.textContent ?? ""
-      ) ||
-      normalizeText(
-        row.querySelector('span.typography_uiText_0ad')?.textContent ?? ""
-      ) ||
-      "Unknown";
-
-    const timeEl = row.querySelector("time");
-    const dueRaw =
-      timeEl?.getAttribute("datetime") ??
-      normalizeText(timeEl?.textContent ?? "");
-
-    const done =
-      row.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked ??
-      false;
-
-    const id = ensureId(`task-${title}-${index}`);
     if (seen.has(id)) return;
     seen.add(id);
+
+    const assignee = normalizeText(
+      row.querySelector('div[class*="leadInfoBox"] span, div[class*="compact_leadInfo"] span')?.textContent ?? ""
+    ) || "Unknown";
 
     tasks.push({
       id,
       description: title,
       assignee,
-      dueDate: toDateString(dueRaw),
-      done,
+      dueDate: toDateString(row.querySelector("time")?.getAttribute("datetime") ?? ""),
+      done: row.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked ?? false,
     });
   });
 
   return tasks;
 }
-
 
 
 

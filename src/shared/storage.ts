@@ -16,21 +16,26 @@ export async function getCloseData(): Promise<CloseData> {
 }
 
 export async function saveSnapshot(snapshot: ExtractionSnapshot) {
-  const current = await getCloseData()
-  if (snapshot.timestamp < current.lastSync) {
-    return { data: current, skipped: true as const }
-  }
+  const current = await getCloseData();
+
+  const mergeRecords = (oldItems: any[], newItems: any[] | undefined) => {
+    if (!newItems) return oldItems;
+    const map = new Map();
+    oldItems.forEach(item => map.set(item.id, item));
+    newItems.forEach(item => map.set(item.id, item));
+    return Array.from(map.values());
+  };
 
   const next: CloseData = {
     ...current,
-    contacts: snapshot.contacts ?? current.contacts,
-    opportunities: snapshot.opportunities ?? current.opportunities,
-    tasks: snapshot.tasks ?? current.tasks,
-    lastSync: snapshot.timestamp,
-  }
+    contacts: mergeRecords(current.contacts, snapshot.contacts),
+    opportunities: mergeRecords(current.opportunities, snapshot.opportunities),
+    tasks: mergeRecords(current.tasks, snapshot.tasks),
+    lastSync: Date.now(),
+  };
 
-  await chrome.storage.local.set({ [STORAGE_KEY]: next })
-  return { data: next, skipped: false as const }
+  await chrome.storage.local.set({ [STORAGE_KEY]: next });
+  return { data: next, skipped: false as const };
 }
 
 export async function deleteRecord(kind: RecordKind, id: string) {
