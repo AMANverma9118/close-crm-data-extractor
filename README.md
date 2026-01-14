@@ -61,16 +61,7 @@ Chrome extension that scrapes Contacts, Opportunities, and Tasks from Close CRM 
 - Background → content (active tab): `run_extraction`.
 - Content → background/popup: extraction result with success/error + saved data.
 
-## Notes & limitations
-- Selectors are resilient but may need tweaking if Close updates its DOM. The README documents where to adjust (`src/shared/extraction.ts`).
-- For paginated or virtualized lists, scroll/load all rows and click “Extract Now” again; the storage replacement ensures deletions are captured when items are absent in the latest snapshot.
-
-## Scripts
-- `npm run build` – type-check + bundle popup/content/background into `dist/`.
-- `npm run dev` – Vite dev server for popup UI only (not MV3 served).
-- `npm run lint` – ESLint.
-
-## Demo checklist (for the required 3–5 min video)
+## Demo checklist
 1. Open Close list view (contacts/opportunities/tasks).  
 2. Click extension → “Extract Now”; indicator shows progress.  
 3. Refresh page; popup still shows persisted data.  
