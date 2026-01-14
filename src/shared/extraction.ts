@@ -166,51 +166,24 @@ export function extractTasks(): Task[] {
   );
 
   rows.forEach((row, index) => {
-    let title = "";
-    let assignee = "Unknown";
-
-    const assigneeSpan = row.querySelector('span.typography_boldWeight_f16');
-    if (assigneeSpan) {
-      assignee = normalizeText(assigneeSpan.textContent ?? "");
-    }
-
-    if (assignee === "Unknown") {
-      const expandedAssignee = row.querySelector('div.ExpandedItemLayout_leadInfoBox_e6b span.typography_uiText_0ad');
-      if (expandedAssignee) {
-        assignee = normalizeText(expandedAssignee.textContent ?? "");
-      }
-    }
-
-    const ellipsisDiv = row.querySelector('div[class*="CollapsedItemLayout_compact_ellipsis"]');
-    
-    if (ellipsisDiv) {
-      const fullText = normalizeText(ellipsisDiv.textContent ?? "");
-      
-      if (assignee !== "Unknown" && fullText.includes(assignee)) {
-        title = fullText.replace(assignee, "").trim();
-      } else {
-        title = fullText;
-      }
-    }
-
-    if (!title) {
-      const allSpans = row.querySelectorAll('span.typography_uiText_0ad');
-      for (const span of allSpans) {
-        const text = normalizeText(span.textContent ?? "");
-        if (text && text !== assignee) {
-          title = text;
-          break;
-        }
-      }
-    }
-
-    if (!title && assignee === "Unknown") {
-      title = normalizeText(
+    let title =
+      normalizeText(
         row.querySelector('span.typography_uiText_0ad')?.textContent ?? ""
+      ) ||
+      normalizeText(
+        row.querySelector('div.CollapsedItemLayout_compact_ellipsis_a1b')?.textContent ?? ""
       );
-    }
 
     if (!title) return;
+
+    const assignee =
+      normalizeText(
+        row.querySelector('div.ExpandedItemLayout_leadInfoBox_e6b span.typography_uiText_0ad')?.textContent ?? ""
+      ) ||
+      normalizeText(
+        row.querySelector('span.typography_uiText_0ad')?.textContent ?? ""
+      ) ||
+      "Unknown";
 
     const timeEl = row.querySelector("time");
     const dueRaw =
@@ -236,6 +209,7 @@ export function extractTasks(): Task[] {
 
   return tasks;
 }
+
 
 
 
